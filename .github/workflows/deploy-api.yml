@@ -1,0 +1,29 @@
+name: Deploy Api to Azure App Service
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'LineClockBot.Api/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish
+        run: dotnet publish LineClockBot.Api/LineClockBot.Api.csproj -c Release -o ./publish
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'RingRingFish'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./publish

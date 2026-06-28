@@ -1,0 +1,55 @@
+@page
+@model LineClockBot.Api.Pages.Admin.UserSettingsModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "UserSettings";
+}
+
+<h1>UserSettings</h1>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <div class="alert alert-success">@Model.Message</div>
+}
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>暱稱</th>
+            <th>Line User ID</th>
+            <th>工時</th>
+            <th>更新時間</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.UserSettings.Any())
+        {
+            <tr><td colspan="6" class="empty">沒有資料</td></tr>
+        }
+        @foreach (var s in Model.UserSettings)
+        {
+            <tr>
+                <td>@s.Id</td>
+                <td>
+                    <form method="post" asp-page-handler="SaveNickname" class="inline" style="display:flex;gap:6px;align-items:center;">
+                        <input type="hidden" name="id" value="@s.Id" />
+                        <input type="text" name="nickname" value="@s.Nickname" placeholder="未設定" style="width:100px;padding:4px 6px;font-size:13px;border:1px solid #ddd;border-radius:4px;height:28px;" />
+                        <button type="submit" class="btn btn-secondary" style="height:28px;padding:0 8px;font-size:12px;">儲存</button>
+                    </form>
+                </td>
+                <td style="font-size:12px;color:#999;">@s.LineUserId</td>
+                <td>@s.WorkHours 小時</td>
+                <td>@s.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                <td>
+                    <form method="post" asp-page-handler="Delete" class="inline"
+                          onsubmit="return confirm('確定刪除此使用者設定？刪除後該使用者需重新設定工時。')">
+                        <input type="hidden" name="id" value="@s.Id" />
+                        <button type="submit" class="btn btn-danger">刪除</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

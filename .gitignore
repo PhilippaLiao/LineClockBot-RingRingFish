@@ -1,0 +1,23 @@
+# Build
+bin/
+obj/
+
+# 機密設定（絕對不進 Git）
+appsettings.Development.json
+local.settings.json
+
+# SQLite 本地資料庫
+*.db
+*.db-shm
+*.db-wal
+
+# Visual Studio
+.vs/
+*.user
+
+# Rider
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

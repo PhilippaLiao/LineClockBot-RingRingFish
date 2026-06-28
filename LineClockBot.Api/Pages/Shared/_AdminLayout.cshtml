@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - LineClockBot Admin</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #333; }
+        nav { background: #2c3e50; color: white; padding: 12px 24px; display: flex; align-items: center; gap: 24px; }
+        nav a { color: #ccc; text-decoration: none; font-size: 14px; }
+        nav a:hover, nav a.active { color: white; }
+        nav .brand { font-weight: bold; font-size: 16px; color: white; margin-right: 12px; }
+        main { max-width: 1100px; margin: 32px auto; padding: 0 16px; }
+        h1 { font-size: 22px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th { background: #f0f0f0; padding: 10px 14px; text-align: left; font-size: 13px; color: #666; }
+        td { padding: 10px 14px; border-top: 1px solid #eee; font-size: 14px; }
+        tr:hover td { background: #fafafa; }
+        .btn { display: inline-block; padding: 6px 14px; border-radius: 4px; font-size: 13px; cursor: pointer; border: none; text-decoration: none; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-primary { background: #2980b9; color: white; }
+        .btn-primary:hover { background: #2471a3; }
+        .btn-secondary { background: #7f8c8d; color: white; }
+        .btn-secondary:hover { background: #6c7a7d; }
+        form.inline { display: inline; }
+        .card { background: white; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; height: 36px; box-sizing: border-box; }
+        .alert { padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; font-size: 14px; }
+        .alert-success { background: #d4edda; color: #155724; }
+        .alert-danger { background: #f8d7da; color: #721c24; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+        .badge-sent { background: #d4edda; color: #155724; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .logout { margin-left: auto; }
+        .empty { text-align: center; padding: 40px; color: #999; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <span class="brand">🐟 LineClockBot Admin</span>
+        <a asp-page="/Admin/Reminders">Reminders</a>
+        <a asp-page="/Admin/WorkRecords">WorkRecords</a>
+        <a asp-page="/Admin/UserSettings">UserSettings</a>
+        <span class="logout">
+            <a asp-page="/Admin/Logout">登出</a>
+        </span>
+    </nav>
+    <main>
+        @RenderBody()
+    </main>
+</body>
+</html>

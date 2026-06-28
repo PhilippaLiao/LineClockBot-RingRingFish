@@ -1,0 +1,219 @@
+@page
+@model LineClockBot.Api.Pages.Admin.RemindersModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Reminders";
+}
+
+<h1>Reminders</h1>
+
+<div style="margin-bottom:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <a href="?filter=all&userFilter=@Model.UserFilter" class="btn @(Model.Filter == "all" ? "btn-primary" : "btn-secondary")">全部</a>
+    <a href="?filter=pending&userFilter=@Model.UserFilter" class="btn @(Model.Filter == "pending" ? "btn-primary" : "btn-secondary")">待發送</a>
+    <a href="?filter=sent&userFilter=@Model.UserFilter" class="btn @(Model.Filter == "sent" ? "btn-primary" : "btn-secondary")">已發送</a>
+
+    <form method="get" style="display:flex;gap:8px;align-items:center;margin-left:8px;">
+        <input type="hidden" name="filter" value="@Model.Filter" />
+        <label style="font-size:13px;">使用者篩選：</label>
+        <select name="userFilter" onchange="this.form.submit()" style="padding:4px 8px;font-size:13px;border:1px solid #ddd;border-radius:4px;height:32px;">
+            @if (string.IsNullOrEmpty(Model.UserFilter))
+            {
+                <option value="" selected>全部</option>
+            }
+            else
+            {
+                <option value="">全部</option>
+            }
+            @foreach (var u in Model.AllUsers)
+            {
+                var label = u.Nickname ?? u.LineUserId;
+                if (Model.UserFilter == u.LineUserId)
+                {
+                    <option value="@u.LineUserId" selected>@label</option>
+                }
+                else
+                {
+                    <option value="@u.LineUserId">@label</option>
+                }
+            }
+        </select>
+        <input type="hidden" name="pageNum" value="1" />
+    </form>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <div class="alert @(Model.IsError ? "alert-danger" : "alert-success")">@Model.Message</div>
+}
+
+<div class="card" style="margin-bottom:24px;">
+    <h2 style="font-size:16px;margin-bottom:16px;">新增提醒</h2>
+    <form method="post" asp-page-handler="Create">
+        <input type="hidden" name="filter" value="@Model.Filter" />
+        <input type="hidden" name="userFilter" value="@Model.UserFilter" />
+        <input type="hidden" name="pageNum" value="@Model.CurrentPage" />
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+            <div class="form-group" style="margin:0;flex:1;min-width:160px;">
+                <label>Line User ID</label>
+                <input type="text" name="lineUserId" required placeholder="Uxxxxxxxxx" />
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label>日期</label>
+                <input type="date" name="scheduledDate" required style="width:150px;" />
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label>時間（HH:mm）</label>
+                <input type="text" name="scheduledTime" required style="width:90px;" />
+            </div>
+            <div class="form-group" style="margin:0;flex:2;min-width:160px;">
+                <label>訊息</label>
+                <input type="text" name="message" required placeholder="提醒內容" />
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary" style="height:36px;">新增</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<form id="deleteOneForm" method="post" asp-page-handler="Delete">
+    <input type="hidden" id="deleteOneId" name="id" value="" />
+    <input type="hidden" name="filter" value="@Model.Filter" />
+    <input type="hidden" name="userFilter" value="@Model.UserFilter" />
+    <input type="hidden" name="pageNum" value="@Model.CurrentPage" />
+</form>
+
+<form id="batchForm" method="post" asp-page-handler="DeleteBatch">
+    <input type="hidden" name="filter" value="@Model.Filter" />
+    <input type="hidden" name="userFilter" value="@Model.UserFilter" />
+    <input type="hidden" name="pageNum" value="@Model.CurrentPage" />
+
+    <div style="margin-bottom:8px;display:flex;gap:8px;align-items:center;">
+        <button type="submit" class="btn btn-danger" id="batchDeleteBtn">
+            刪除選取
+        </button>
+        <span id="selectedCount" style="font-size:13px;color:#666;">已選 0 筆</span>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:36px;"><input type="checkbox" id="selectAll" /></th>
+                <th>ID</th>
+                <th>User</th>
+                <th>排程時間</th>
+                <th>訊息</th>
+                <th>Type</th>
+                <th>狀態</th>
+                <th>已發送時間</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Reminders.Any())
+            {
+                <tr><td colspan="9" class="empty">沒有資料</td></tr>
+            }
+            @foreach (var r in Model.Reminders)
+            {
+                <tr>
+                    <td><input type="checkbox" name="ids" value="@r.Id" class="row-check" /></td>
+                    <td>@r.Id</td>
+                    <td title="@r.LineUserId">@(Model.Nicknames.GetValueOrDefault(r.LineUserId) ?? r.LineUserId)</td>
+                    <td>@r.ScheduledAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@r.Message</td>
+                    <td>@r.ReminderType</td>
+                    <td>
+                        @if (r.SentAt.HasValue)
+                        {
+                            <span class="badge badge-sent">已發送</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-pending">待發送</span>
+                        }
+                    </td>
+                    <td>@(r.SentAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                    <td>
+                        <button type="button" class="btn btn-danger"
+                                onclick="deleteOne(@r.Id)">刪除</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</form>
+
+@if (Model.TotalPages > 1)
+{
+    <div style="margin-top:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        @if (Model.CurrentPage > 1)
+        {
+            <a href="?filter=@Model.Filter&userFilter=@Model.UserFilter&pageNum=@(Model.CurrentPage - 1)" class="btn btn-secondary">上一頁</a>
+        }
+        @{
+            int pStart = Math.Max(1, Model.CurrentPage - 4);
+            int pEnd = Math.Min(Model.TotalPages, pStart + 9);
+            if (pEnd - pStart < 9) pStart = Math.Max(1, pEnd - 9);
+        }
+        @if (pStart > 1)
+        {
+            <span style="align-self:center;color:#999;">…</span>
+        }
+        @for (int i = pStart; i <= pEnd; i++)
+        {
+            <a href="?filter=@Model.Filter&userFilter=@Model.UserFilter&pageNum=@i"
+               class="btn @(i == Model.CurrentPage ? "btn-primary" : "btn-secondary")">@i</a>
+        }
+        @if (pEnd < Model.TotalPages)
+        {
+            <span style="align-self:center;color:#999;">…</span>
+        }
+        @if (Model.CurrentPage < Model.TotalPages)
+        {
+            <a href="?filter=@Model.Filter&userFilter=@Model.UserFilter&pageNum=@(Model.CurrentPage + 1)" class="btn btn-secondary">下一頁</a>
+        }
+        <span style="font-size:13px;color:#666;">第 @Model.CurrentPage / @Model.TotalPages 頁</span>
+    </div>
+}
+
+<script>
+    function deleteOne(id) {
+        if (!confirm('確定刪除此提醒？')) return;
+        document.getElementById('deleteOneId').value = id;
+        document.getElementById('deleteOneForm').submit();
+    }
+
+    document.getElementById('batchDeleteBtn').addEventListener('click', function (e) {
+        const checked = document.querySelectorAll('input[name=ids]:checked');
+        if (checked.length === 0) {
+            e.preventDefault();
+            alert('請先勾選要刪除的項目');
+            return;
+        }
+        if (!confirm('確定刪除選取的 ' + checked.length + ' 筆提醒？')) {
+            e.preventDefault();
+        }
+    });
+
+    const selectAll = document.getElementById('selectAll');
+    const checks = () => document.querySelectorAll('input.row-check');
+    const countEl = document.getElementById('selectedCount');
+
+    function updateCount() {
+        const n = document.querySelectorAll('input.row-check:checked').length;
+        countEl.textContent = '已選 ' + n + ' 筆';
+    }
+
+    selectAll.addEventListener('change', () => {
+        checks().forEach(c => c.checked = selectAll.checked);
+        updateCount();
+    });
+
+    document.addEventListener('change', e => {
+        if (e.target.classList.contains('row-check')) {
+            selectAll.checked = [...checks()].every(c => c.checked);
+            updateCount();
+        }
+    });
+</script>

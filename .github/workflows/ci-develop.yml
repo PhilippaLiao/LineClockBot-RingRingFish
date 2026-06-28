@@ -1,0 +1,24 @@
+name: CI (develop)
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build Api
+        run: dotnet build LineClockBot.Api/LineClockBot.Api.csproj -c Release
+
+      - name: Build Functions
+        run: dotnet build LineClockBot.Functions/LineClockBot.Functions.csproj -c Release
